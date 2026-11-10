@@ -1,5 +1,5 @@
 import { api } from "@/lib/redux/services/api";
-import type { ListQuery, PageResponse, Patient, PatientInput, SingleResponse } from "@/types/api";
+import type { Appointment, AppointmentInput, AppointmentUpdateInput, ListQuery, PageResponse, Patient, PatientInput, PatientUpdateInput, SingleResponse } from "@/types/api";
 
 export const patientsApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -17,12 +17,20 @@ export const patientsApi = api.injectEndpoints({
         ...(result?.data.map(({ _id }) => ({ type: "Patient" as const, id: _id })) ?? []),
       ],
     }),
-    createDoctorPatient: build.mutation<SingleResponse<Patient>, { doctorId: string; body: PatientInput }>({
-      query: ({ doctorId, body }) => ({ url: `/doctors/${encodeURIComponent(doctorId)}/patients`, method: "POST", body }),
-      invalidatesTags: (_result, _error, { doctorId }) => ["Patient", "Dashboard", { type: "Patient", id: `DOCTOR-${doctorId}` }],
+    createPatient: build.mutation<SingleResponse<Patient>, PatientInput>({
+      query: (body) => ({ url: "/patients", method: "POST", body }),
+      invalidatesTags: ["Patient", "Dashboard"],
     }),
-    updatePatient: build.mutation<SingleResponse<Patient>, { patientId: string; body: PatientInput }>({
+    addPatientAppointment: build.mutation<SingleResponse<Appointment>, { patientId: string; body: AppointmentInput }>({
+      query: ({ patientId, body }) => ({ url: `/patients/${encodeURIComponent(patientId)}/appointments`, method: "POST", body }),
+      invalidatesTags: (_result, _error, { patientId }) => ["Patient", "Dashboard", { type: "Patient", id: patientId }],
+    }),
+    updatePatient: build.mutation<SingleResponse<Patient>, { patientId: string; body: PatientUpdateInput }>({
       query: ({ patientId, body }) => ({ url: `/patients/${encodeURIComponent(patientId)}`, method: "PATCH", body }),
+      invalidatesTags: (_result, _error, { patientId }) => ["Patient", "Dashboard", { type: "Patient", id: patientId }],
+    }),
+    updatePatientAppointment: build.mutation<SingleResponse<Appointment>, { patientId: string; appointmentId: string; body: AppointmentUpdateInput }>({
+      query: ({ patientId, appointmentId, body }) => ({ url: `/patients/${encodeURIComponent(patientId)}/appointments/${encodeURIComponent(appointmentId)}`, method: "PATCH", body }),
       invalidatesTags: (_result, _error, { patientId }) => ["Patient", "Dashboard", { type: "Patient", id: patientId }],
     }),
     deletePatient: build.mutation<void, { patientId: string; doctorId?: string }>({
@@ -38,7 +46,9 @@ export const patientsApi = api.injectEndpoints({
 export const {
   useGetPatientsQuery,
   useGetDoctorPatientsQuery,
-  useCreateDoctorPatientMutation,
+  useCreatePatientMutation,
+  useAddPatientAppointmentMutation,
   useUpdatePatientMutation,
+  useUpdatePatientAppointmentMutation,
   useDeletePatientMutation,
 } = patientsApi;

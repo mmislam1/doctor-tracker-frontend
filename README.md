@@ -67,11 +67,11 @@ The application is split across two independent Git repositories and deploys as 
 
 - `doctor-tracker-frontend` is the Next.js App Router application. It renders the admin interface and uses Redux Toolkit with RTK Query for browser-side REST data and caching.
 - `doctor-tracker-backend` is a TypeScript/Express 5 REST API. It owns Better Auth server configuration, session and administrator checks, request validation, and doctor, patient, and dashboard operations.
-- MongoDB Atlas stores Better Auth data, doctors, patients, and Better Auth rate-limit data. The API uses a shared MongoDB client.
+- MongoDB Atlas stores Better Auth data, doctors, patient profiles, appointments, and Better Auth rate-limit data. Each appointment is a separate document linked to its patient and doctor; profiles can have visits with multiple doctors. The API uses a shared MongoDB client.
 
 The API boundary is the backend's `/api/v1` business routes and `/api/auth/*` Better Auth routes. In the browser, both are requested through relative same-origin paths. In development, `next.config.ts` rewrites `/api/*` to `BACKEND_API_ORIGIN`. In production, Netlify rewrites `/api/*` to the public Render backend URL. Netlify keeps the browser URL on its own origin and proxies the request to Render; Better Auth's host-only session cookie is therefore set for the frontend origin and remains first-party.
 
-Request flow: the browser calls `/api/auth/*` to sign in or check a session, or calls `/api/v1/*` through RTK Query. Netlify forwards `/api/*` to Render in production. Better Auth handles authentication routes; Express checks the session and admin role for business routes, then reads or writes MongoDB Atlas. The JSON response returns through the proxy to the browser, where RTK Query updates the screen and cached data.
+Request flow: the browser calls `/api/auth/*` to sign in or check a session, or calls `/api/v1/*` through RTK Query. Netlify forwards `/api/*` to Render in production. Better Auth handles authentication routes; Express checks the session and admin role for business routes, then reads or writes MongoDB Atlas. Patient list responses include their appointment records and status; creating a visit for an existing patient stores another appointment linked to that profile. The JSON response returns through the proxy to the browser, where RTK Query updates the screen and cached data.
 
 ## Technical Decisions
 
@@ -93,13 +93,13 @@ Deploy in this order:
 
 1. **MongoDB Atlas:** create the Atlas database and database user, configure network access for the Render service, and keep the URI and credentials private.
 2. **Render backend:** deploy `doctor-tracker-backend` as a Node web service. Use Node 26, `npm ci` for dependency installation, `npm run build` for the build command, `npm start` for the start command, and `/health` for the health check. Configure `NODE_ENV=production`, `MONGODB_URI`, `MONGODB_DB_NAME`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `FRONTEND_ORIGIN` in Render. `PORT` is supplied by Render. Once the service has connected to the persistent database, create the initial admin using the backend README command.
-3. **Netlify frontend:** deploy `doctor-tracker-frontend` with `npm run build` and its managed Next.js runtime. Replace `YOUR-BACKEND-NAME` in `netlify.toml` with the public Render service URL so `/api/*` is proxied to `https://<render-service>.onrender.com/api/:splat`. Set the backend's `BETTER_AUTH_URL` and `FRONTEND_ORIGIN` to the exact Netlify site or custom-domain origin. The frontend does not need a production `BACKEND_API_ORIGIN`.
+3. **Netlify frontend:** deploy `doctor-tracker-frontend` with `npm run build` and its managed Next.js runtime. The committed `netlify.toml` rewrites `/api/*` to `https://doctor-tracker-backend-9dje.onrender.com/api/:splat`. Set the backend's `BETTER_AUTH_URL` and `FRONTEND_ORIGIN` to the exact Netlify site or custom-domain origin. The frontend does not need a production `BACKEND_API_ORIGIN`.
 
 The Render URL in the rewrite is public routing configuration, not a secret. MongoDB credentials and `BETTER_AUTH_SECRET` belong only in backend/Render settings. Do not commit `.env`, `.env.local`, administrator passwords, cookies, or session tokens.
 
 ## Submission
 
-- **Deployed frontend (Netlify):** Not recorded in the repositories yet.
-- **Backend (Render):** Not recorded; replace the placeholder in `netlify.toml` with the actual service URL.
+- **Deployed frontend (Netlify):** [https://doc-trackerx.netlify.app](https://doc-trackerx.netlify.app)
+- **Backend (Render):** [https://doctor-tracker-backend-9dje.onrender.com](https://doctor-tracker-backend-9dje.onrender.com)
 - **Frontend GitHub repository:** [github.com/mmislam1/doctor-tracker-frontend](https://github.com/mmislam1/doctor-tracker-frontend)
 - **Backend GitHub repository:** [github.com/mmislam1/doctor-tracker-backend](https://github.com/mmislam1/doctor-tracker-backend)

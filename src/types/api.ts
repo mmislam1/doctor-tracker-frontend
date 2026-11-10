@@ -16,6 +16,19 @@ export interface SingleResponse<T> {
   data: T;
 }
 
+export const appointmentStatuses = ["upcoming", "completed", "incomplete", "rescheduled", "cancelled", "unknown"] as const;
+export type AppointmentStatus = (typeof appointmentStatuses)[number];
+
+export interface Appointment {
+  _id: string;
+  patientId: string;
+  doctorId: string;
+  appointmentAt?: string;
+  status: AppointmentStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Doctor {
   _id: string;
   name: string;
@@ -29,9 +42,9 @@ export interface Doctor {
 
 export interface Patient {
   _id: string;
-  doctorId: string;
   name: string;
   condition: string;
+  appointments: Appointment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -60,6 +73,7 @@ export interface ListQuery {
   to?: string;
   condition?: string;
   doctorId?: string;
+  status?: AppointmentStatus;
   specialization?: string;
   hospital?: string;
 }
@@ -75,4 +89,23 @@ export interface DoctorInput {
 export interface PatientInput {
   name: string;
   condition: string;
+  doctorId: string;
+  appointmentAt: string;
+  status: AppointmentStatus;
+}
+
+export interface PatientUpdateInput {
+  name?: string;
+  condition?: string;
+}
+
+export interface AppointmentInput {
+  doctorId: string;
+  appointmentAt: string;
+  status: AppointmentStatus;
+}
+
+export interface AppointmentUpdateInput {
+  appointmentAt?: string;
+  status?: AppointmentStatus;
 }
