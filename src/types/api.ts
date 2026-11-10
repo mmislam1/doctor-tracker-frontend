@@ -23,7 +23,7 @@ export interface Appointment {
   _id: string;
   patientId: string;
   doctorId: string;
-  doctorName: string;
+  doctorName?: string;
   appointmentAt?: string;
   status: AppointmentStatus;
   createdAt: string;

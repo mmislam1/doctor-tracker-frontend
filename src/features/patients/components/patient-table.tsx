@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarDays, Clock3, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/feedback";
+import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type { Appointment, Patient } from "@/types/api";
 
@@ -19,15 +20,22 @@ function StatusBadge({ status }: { status: Appointment["status"] }) {
   return <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize ${colors[status]}`}>{status}</span>;
 }
 
-function AppointmentDetails({ patient, appointment, onEdit }: {
-  patient: Patient; appointment: Appointment; onEdit?: (patient: Patient, appointment: Appointment) => void;
+function formatCompactAppointmentDateTime(value?: string) {
+  if (!value) return "Not scheduled";
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return "Not scheduled";
+  return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function AppointmentDetails({ patient, appointment, doctorName, onEdit }: {
+  patient: Patient; appointment: Appointment; doctorName: string; onEdit?: (patient: Patient, appointment: Appointment) => void;
 }) {
   return <div className="rounded-xl border border-slate-300 bg-white p-4">
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <span className="flex items-center gap-2 text-sm text-slate-700"><Clock3 className="size-4 shrink-0 text-slate-500" aria-hidden="true" />{formatDateTime(appointment.appointmentAt)}</span>
-      <StatusBadge status={appointment.status} />
+    <div className="flex min-w-0 items-center justify-between gap-2">
+      <span title={formatDateTime(appointment.appointmentAt)} className="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-xs text-slate-700"><Clock3 className="size-3.5 shrink-0 text-slate-500" aria-hidden="true" />{formatCompactAppointmentDateTime(appointment.appointmentAt)}</span>
+      <span className="shrink-0"><StatusBadge status={appointment.status} /></span>
     </div>
-    <Link title={`Doctor ID ${appointment.doctorId}`} href={`/doctors/${appointment.doctorId}`} className="mt-3 inline-block max-w-full break-words text-sm font-medium text-teal-800 underline decoration-teal-200 underline-offset-4 hover:text-teal-950">Dr. {appointment.doctorName}</Link>
+    <Link title={`Doctor ID ${appointment.doctorId}`} href={`/doctors/${appointment.doctorId}`} className="mt-3 inline-block max-w-full break-words text-sm font-medium text-teal-800 underline decoration-teal-200 underline-offset-4 hover:text-teal-950">Dr. {doctorName}</Link>
     {onEdit && <div className="mt-3 flex justify-end border-t border-slate-200 pt-2"><Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" aria-label={`Edit appointment for ${patient.name}`} title="Edit appointment" onClick={() => onEdit(patient, appointment)}><Pencil className="mr-1 size-3.5" aria-hidden="true" />Edit visit</Button></div>}
   </div>;
 }
@@ -39,6 +47,8 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
   onEditAppointment?: (patient: Patient, appointment: Appointment) => void;
   onDelete: (patient: Patient) => void;
 }) {
+  const { data: doctorsData } = useGetDoctorsQuery({ page: 1, pageSize: 100 });
+  const doctorNames = new Map(doctorsData?.data.map((doctor) => [doctor._id, doctor.name]) ?? []);
   if (patients.length === 0) return <EmptyState title="No patients found" description="No patient records match these filters. Adjust your search or use Add patient to create a record." />;
 
   return <>
@@ -50,7 +60,7 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
         </div>
         <div className="mt-5 space-y-3">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Appointments ({patient.appointments.length})</p>
-          {patient.appointments.length ? patient.appointments.map((appointment) => <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} onEdit={onEditAppointment} />) : <p className="text-xs text-slate-500">No appointments scheduled.</p>}
+          {patient.appointments.length ? patient.appointments.map((appointment) => <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctorNames.get(appointment.doctorId) || "Unknown doctor"} onEdit={onEditAppointment} />) : <p className="text-xs text-slate-500">No appointments scheduled.</p>}
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-2">
           <span className="flex items-center gap-1.5 text-xs text-slate-500"><CalendarDays className="size-3.5" aria-hidden="true" />Added {formatDate(patient.createdAt)}</span>
@@ -69,7 +79,7 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
           {patients.map((patient) => <tr key={patient._id} className="align-top transition-colors hover:bg-slate-50/70">
             <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span><span className="font-medium text-slate-900">{patient.name}</span></div></td>
             <td className="px-4 py-4"><span className="inline-flex rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">{patient.condition}</span></td>
-            <td className="px-4 py-3"><div className="min-w-60 space-y-3">{patient.appointments.length ? patient.appointments.map((appointment) => <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} onEdit={onEditAppointment} />) : <span className="text-xs text-slate-500">No appointments scheduled.</span>}</div></td>
+            <td className="px-4 py-3"><div className="min-w-60 space-y-3">{patient.appointments.length ? patient.appointments.map((appointment) => <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctorNames.get(appointment.doctorId) || "Unknown doctor"} onEdit={onEditAppointment} />) : <span className="text-xs text-slate-500">No appointments scheduled.</span>}</div></td>
             <td className="px-4 py-4"><span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-slate-500"><CalendarDays className="size-3.5" aria-hidden="true" />{formatDate(patient.createdAt)}</span></td>
             <td className="px-5 py-4"><div className="flex justify-end gap-1">
               {onAddAppointment && <Button type="button" variant="ghost" size="icon-sm" aria-label={`Add appointment for ${patient.name}`} title="Add appointment" onClick={() => onAddAppointment(patient)}><Plus className="size-4" aria-hidden="true" /></Button>}
