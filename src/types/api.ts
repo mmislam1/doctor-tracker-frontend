@@ -24,6 +24,7 @@ export interface Appointment {
   patientId: string;
   doctorId: string;
   doctorName?: string;
+  doctorSpecialization?: string;
   appointmentAt?: string;
   status: AppointmentStatus;
   createdAt: string;
