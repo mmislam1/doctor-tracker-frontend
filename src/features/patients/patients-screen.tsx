@@ -31,6 +31,11 @@ function PatientFiltersForm({ initial, onApply, onClear }: { initial: PatientFil
     setDateError("");
     onApply(draft);
   }
+  function clearFilters() {
+    setDraft({ search: "", condition: "", status: "", from: "", to: "" });
+    setDateError("");
+    onClear();
+  }
   return <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="Patient filters">
     <form onSubmit={submit}>
       <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
@@ -40,7 +45,7 @@ function PatientFiltersForm({ initial, onApply, onClear }: { initial: PatientFil
         <label><span className="sr-only">Appointment status</span><select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })} className={inputClass}><option value="">Any appointment status</option>{appointmentStatuses.map((status) => <option key={status} value={status}>{status[0].toUpperCase() + status.slice(1)}</option>)}</select></label>
         <label className="relative"><span className="sr-only">Created from</span><CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input type="date" aria-label="Created from" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} className={`${inputClass} pl-9`} /></label>
         <label className="relative"><span className="sr-only">Created to</span><CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input type="date" aria-label="Created to" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} className={`${inputClass} pl-9`} /></label>
-        <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={onClear}><X className="size-4" aria-hidden="true" /></Button></div>
+        <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={clearFilters}><X className="size-4" aria-hidden="true" /></Button></div>
       </div>
       {dateError && <p role="alert" className="mt-2 text-xs text-rose-700">{dateError}</p>}
     </form>

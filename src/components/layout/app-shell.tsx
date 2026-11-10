@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return <div className="min-h-screen bg-[#f5f7f8] lg:flex">
-    <aside className="hidden w-64 shrink-0 flex-col bg-[#132d3b] px-4 py-6 text-white lg:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-[#132d3b] px-4 py-6 text-white lg:flex">
       <Link href="/" className="mb-10 flex items-center gap-3 px-3" aria-label="Doctor Tracker dashboard">
         <span className="flex size-10 items-center justify-center rounded-xl bg-teal-400 text-[#113341]"><Activity className="size-5" aria-hidden="true" /></span>
         <span><span className="block text-sm font-semibold tracking-wide">DOCTOR TRACKER</span><span className="mt-0.5 block text-[11px] text-slate-300">Admin workspace</span></span>

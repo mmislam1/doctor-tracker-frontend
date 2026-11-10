@@ -27,9 +27,19 @@ function formatCompactAppointmentDateTime(value?: string) {
   return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-function AppointmentDetails({ patient, appointment, doctorName, doctorSpecialization, onEdit }: {
-  patient: Patient; appointment: Appointment; doctorName: string; doctorSpecialization: string; onEdit?: (patient: Patient, appointment: Appointment) => void;
+function AppointmentDetails({ patient, appointment, doctorName, doctorSpecialization, variant, onEdit }: {
+  patient: Patient; appointment: Appointment; doctorName: string; doctorSpecialization: string; variant: "card" | "row"; onEdit?: (patient: Patient, appointment: Appointment) => void;
 }) {
+  if (variant === "row") return <div className="grid min-w-[440px] grid-cols-[minmax(125px,1fr)_minmax(125px,1fr)_auto_auto] items-center gap-3 py-2.5">
+    <span title={formatDateTime(appointment.appointmentAt)} className="flex items-center gap-1.5 whitespace-nowrap text-xs text-slate-700"><Clock3 className="size-3.5 shrink-0 text-slate-500" aria-hidden="true" />{formatCompactAppointmentDateTime(appointment.appointmentAt)}</span>
+    <div className="min-w-0">
+      <Link title={`Doctor ID ${appointment.doctorId}`} href={`/doctors/${appointment.doctorId}`} className="block truncate text-xs font-medium text-teal-800 no-underline hover:text-teal-950 hover:no-underline">Dr. {doctorName}</Link>
+      <p className="mt-0.5 truncate text-[11px] text-slate-500">{doctorSpecialization}</p>
+    </div>
+    <StatusBadge status={appointment.status} />
+    {onEdit && <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" aria-label={`Edit appointment for ${patient.name}`} title="Edit appointment" onClick={() => onEdit(patient, appointment)}><Pencil className="mr-1 size-3.5" aria-hidden="true" />Edit</Button>}
+  </div>;
+
   return <div className="rounded-xl border border-slate-300 bg-white p-4">
     <div className="flex min-w-0 items-center justify-between gap-2">
       <span title={formatDateTime(appointment.appointmentAt)} className="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-xs text-slate-700"><Clock3 className="size-3.5 shrink-0 text-slate-500" aria-hidden="true" />{formatCompactAppointmentDateTime(appointment.appointmentAt)}</span>
@@ -65,7 +75,7 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Appointments ({patient.appointments.length})</p>
           {patient.appointments.length ? patient.appointments.map((appointment) => {
             const doctor = doctorsById.get(appointment.doctorId);
-            return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} onEdit={onEditAppointment} />;
+            return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} variant="card" onEdit={onEditAppointment} />;
           }) : <p className="text-xs text-slate-500">No appointments scheduled.</p>}
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-2">
@@ -79,15 +89,15 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
       </article>)}
     </div>
     <div className="hidden overflow-x-auto lg:block">
-      <table className="w-full min-w-[900px] text-left text-sm">
+      <table className="w-full min-w-[1100px] text-left text-sm">
         <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500"><tr><th className="px-6 py-3.5">Patient</th><th className="px-4 py-3.5">Condition</th><th className="px-4 py-3.5">Appointments</th><th className="px-4 py-3.5">Added</th><th className="px-5 py-3.5 text-right">Actions</th></tr></thead>
         <tbody className="divide-y divide-slate-200">
           {patients.map((patient) => <tr key={patient._id} className="align-top transition-colors hover:bg-slate-50/70">
             <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span><span className="font-medium text-slate-900">{patient.name}</span></div></td>
             <td className="px-4 py-4"><span className="inline-flex rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">{patient.condition}</span></td>
-            <td className="px-4 py-3"><div className="min-w-60 space-y-3">{patient.appointments.length ? patient.appointments.map((appointment) => {
+            <td className="px-4 py-2"><div className="min-w-[440px] divide-y divide-slate-200">{patient.appointments.length ? patient.appointments.map((appointment) => {
               const doctor = doctorsById.get(appointment.doctorId);
-              return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} onEdit={onEditAppointment} />;
+              return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} variant="row" onEdit={onEditAppointment} />;
             }) : <span className="text-xs text-slate-500">No appointments scheduled.</span>}</div></td>
             <td className="px-4 py-4"><span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-slate-500"><CalendarDays className="size-3.5" aria-hidden="true" />{formatDate(patient.createdAt)}</span></td>
             <td className="px-5 py-4"><div className="flex justify-end gap-1">

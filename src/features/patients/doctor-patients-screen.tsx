@@ -37,6 +37,15 @@ function DoctorPatientFiltersForm({ initial, onApply, onClear }: { initial: Filt
     setDateError("");
     onApply({ search, condition, status, from, to });
   }
+  function clearFilters() {
+    setSearch("");
+    setCondition("");
+    setStatus("");
+    setFrom("");
+    setTo("");
+    setDateError("");
+    onClear();
+  }
   return <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="Patient filters">
     <form onSubmit={submit}>
       <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Filter this list</div>
@@ -46,7 +55,7 @@ function DoctorPatientFiltersForm({ initial, onApply, onClear }: { initial: Filt
         <label><span className="sr-only">Appointment status</span><select value={status} onChange={(event) => setStatus(event.target.value)} className={inputClass}><option value="">Any appointment status</option>{appointmentStatuses.map((value) => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}</select></label>
         <label><span className="sr-only">Created from</span><input type="date" aria-label="Created from" value={from} onChange={(event) => setFrom(event.target.value)} className={inputClass} /></label>
         <label><span className="sr-only">Created to</span><input type="date" aria-label="Created to" value={to} onChange={(event) => setTo(event.target.value)} className={inputClass} /></label>
-        <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={onClear}><X className="size-4" aria-hidden="true" /></Button></div>
+        <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={clearFilters}><X className="size-4" aria-hidden="true" /></Button></div>
       </div>
       {dateError && <p role="alert" className="mt-2 text-xs text-rose-700">{dateError}</p>}
     </form>
