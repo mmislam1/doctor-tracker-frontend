@@ -1,6 +1,6 @@
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR-BACKEND-NAME.onrender.com/api/:splat"
+  to = "https://doctor-tracker-backend-9dje.onrender.com/api/:splat"
   status = 200
   force = true
 
