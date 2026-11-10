@@ -12,7 +12,8 @@ import type { Appointment, AppointmentStatus, Patient } from "@/types/api";
 
 const appointmentSchema = z.object({
   doctorId: z.string().optional(),
-  appointmentAt: z.string().min(1, "Choose an appointment date and time").refine((value) => !Number.isNaN(new Date(value).valueOf()), "Enter a valid appointment date and time"),
+  appointmentDate: z.string().min(1, "Choose an appointment date").refine((value) => !Number.isNaN(new Date(`${value}T00:00:00`).valueOf()), "Enter a valid appointment date"),
+  appointmentTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Choose a valid appointment time"),
   status: z.enum(["upcoming", "completed", "incomplete", "rescheduled", "cancelled", "unknown"]),
 });
 type Values = z.infer<typeof appointmentSchema>;
@@ -20,12 +21,15 @@ type Mode =
   | { kind: "create"; patient: Patient; doctorId?: string; doctorName?: string }
   | { kind: "edit"; patient: Patient; appointment: Appointment };
 
-function toLocalDateTime(value?: string) {
-  if (!value) return "";
+function toLocalDateAndTime(value?: string) {
+  if (!value) return { date: "", time: "" };
   const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "";
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
+  if (Number.isNaN(date.valueOf())) return { date: "", time: "" };
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return {
+    date: `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
+    time: `${pad(date.getHours())}:${pad(date.getMinutes())}`,
+  };
 }
 
 export function AppointmentForm({ mode, onCancel, onSaved }: { mode: Mode; onCancel: () => void; onSaved: () => void }) {
@@ -37,11 +41,13 @@ export function AppointmentForm({ mode, onCancel, onSaved }: { mode: Mode; onCan
   const isLoading = addState.isLoading || updateState.isLoading;
   const error = isEdit ? updateState.error : addState.error;
   const doctors = doctorsData?.data ?? [];
+  const initialDateTime = mode.kind === "edit" ? toLocalDateAndTime(mode.appointment.appointmentAt) : { date: "", time: "" };
   const { register, handleSubmit, setError, formState: { errors } } = useForm<Values>({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
       doctorId: mode.kind === "create" ? mode.doctorId ?? "" : mode.appointment.doctorId,
-      appointmentAt: mode.kind === "edit" ? toLocalDateTime(mode.appointment.appointmentAt) : "",
+      appointmentDate: initialDateTime.date,
+      appointmentTime: initialDateTime.time,
       status: mode.kind === "edit" ? mode.appointment.status : "upcoming",
     },
   });
@@ -54,9 +60,9 @@ export function AppointmentForm({ mode, onCancel, onSaved }: { mode: Mode; onCan
           setError("doctorId", { type: "required", message: "Choose a doctor" });
           return;
         }
-        await addAppointment({ patientId: mode.patient._id, body: { doctorId, appointmentAt: new Date(values.appointmentAt).toISOString(), status: values.status as AppointmentStatus } }).unwrap();
+        await addAppointment({ patientId: mode.patient._id, body: { doctorId, appointmentAt: new Date(`${values.appointmentDate}T${values.appointmentTime}`).toISOString(), status: values.status as AppointmentStatus } }).unwrap();
       } else {
-        await updateAppointment({ patientId: mode.patient._id, appointmentId: mode.appointment._id, body: { appointmentAt: new Date(values.appointmentAt).toISOString(), status: values.status as AppointmentStatus } }).unwrap();
+        await updateAppointment({ patientId: mode.patient._id, appointmentId: mode.appointment._id, body: { appointmentAt: new Date(`${values.appointmentDate}T${values.appointmentTime}`).toISOString(), status: values.status as AppointmentStatus } }).unwrap();
       }
       onSaved();
     } catch {
@@ -70,8 +76,9 @@ export function AppointmentForm({ mode, onCancel, onSaved }: { mode: Mode; onCan
       {mode.kind === "create" && (mode.doctorId
         ? <div className="rounded-xl border border-slate-300 bg-white px-3 py-2.5"><span className="block text-xs font-medium uppercase tracking-wide text-slate-500">Doctor</span><span className="mt-1 block text-sm font-medium text-slate-900">{mode.doctorName || "Selected doctor"}</span></div>
         : <div><label htmlFor="appointment-doctorId" className="mb-1.5 block text-sm font-medium text-slate-700">Doctor</label><select id="appointment-doctorId" {...register("doctorId")} disabled={doctorsLoading || Boolean(doctorsError) || doctors.length === 0} aria-invalid={Boolean(errors.doctorId)} className={inputClass}><option value="">{doctorsLoading ? "Loading doctors…" : doctors.length ? "Choose a doctor" : "No doctors available"}</option>{doctors.map((doctor) => <option key={doctor._id} value={doctor._id}>{doctor.name} · {doctor.specialization}</option>)}</select>{errors.doctorId?.message && <p className="mt-1 text-xs text-rose-700">{errors.doctorId.message}</p>}{doctorsError && <p role="alert" className="mt-1 text-xs text-rose-700">{getApiErrorMessage(doctorsError, "Could not load doctors. Try again.")}</p>}</div>)}
-      <FormInput label="Appointment date and time" type="datetime-local" required registration={register("appointmentAt")} error={errors.appointmentAt} />
-      {mode.kind === "edit" && <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5"><span className="block text-xs font-medium uppercase tracking-wide text-slate-500">Doctor</span><span className="mt-1 block break-all text-sm text-slate-800">Doctor {mode.appointment.doctorId}</span></div>}
+      <FormInput label="Appointment date" type="date" required registration={register("appointmentDate")} error={errors.appointmentDate} />
+      <FormInput label="Appointment time" type="time" required registration={register("appointmentTime")} error={errors.appointmentTime} />
+      {mode.kind === "edit" && <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5"><span className="block text-xs font-medium uppercase tracking-wide text-slate-500">Doctor</span><span className="mt-1 block text-sm text-slate-800">{mode.appointment.doctorName}</span></div>}
       <div><label htmlFor="appointment-status" className="mb-1.5 block text-sm font-medium text-slate-700">Appointment status</label><select id="appointment-status" {...register("status")} className={inputClass}>{["upcoming", "completed", "incomplete", "rescheduled", "cancelled", "unknown"].map((status) => <option key={status} value={status}>{status[0].toUpperCase() + status.slice(1)}</option>)}</select></div>
     </div>
     {error && <p role="alert" className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm text-rose-800">{getApiErrorMessage(error, `Could not ${isEdit ? "update" : "add"} this appointment. Please try again.`)}</p>}

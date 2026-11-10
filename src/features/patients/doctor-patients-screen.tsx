@@ -124,7 +124,7 @@ function DoctorPatientsContent({ doctorId, doctorName }: { doctorId: string; doc
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6"><div><h2 className="font-semibold text-slate-900">Patients assigned to {doctorName || `Doctor ${shortId(doctorId)}`}</h2><p className="mt-0.5 text-xs text-slate-500">{data?.pagination.total ?? 0} records</p></div>{isFetching && !isLoading && <span className="text-xs text-slate-400">Updating…</span>}</div>
       {isLoading ? <div className="p-4"><LoadingPanel label="Loading doctor's patients" /></div>
         : error ? <div className="p-4"><ErrorPanel message={getApiErrorMessage(error, "Could not load this doctor's patient list.")} onRetry={() => { void refetch(); }} /></div>
-        : <><PatientTable patients={data?.data ?? []} showDoctor={false} onAddAppointment={setPatientForAppointment} onEditAppointment={(patient, appointment) => setAppointmentToEdit({ patient, appointment })} onDelete={setPatientToDelete} />{data && data.data.length > 0 && <Pagination pagination={data.pagination} onPageChange={goToPage} />}</>}
+        : <><PatientTable patients={data?.data ?? []} onAddAppointment={setPatientForAppointment} onEditAppointment={(patient, appointment) => setAppointmentToEdit({ patient, appointment })} onDelete={setPatientToDelete} />{data && data.data.length > 0 && <Pagination pagination={data.pagination} onPageChange={goToPage} />}</>}
     </section>
     {patientToDelete && <ConfirmDialog title="Remove this patient?" description={`This will permanently remove ${patientToDelete.name} from this doctor's patient list.`} busy={deleteState.isLoading} onCancel={() => setPatientToDelete(null)} onConfirm={() => void confirmDelete()} />}
   </>;

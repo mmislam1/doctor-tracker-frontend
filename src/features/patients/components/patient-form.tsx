@@ -14,7 +14,8 @@ const patientSchema = z.object({
   doctorId: z.string().optional(),
   name: z.string().trim().min(2, "Enter the patient's name").max(120),
   condition: z.string().trim().min(2, "Enter a condition").max(120),
-  appointmentAt: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(value).valueOf()), "Enter a valid appointment date and time"),
+  appointmentDate: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(`${value}T00:00:00`).valueOf()), "Enter a valid appointment date"),
+  appointmentTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Enter a valid appointment time").optional(),
   status: z.enum(appointmentStatuses).optional(),
 });
 type PatientValues = z.infer<typeof patientSchema>;
@@ -40,7 +41,8 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
       doctorId: mode.kind === "create" ? mode.doctorId ?? "" : "",
       name: mode.kind === "edit" ? mode.patient.name : "",
       condition: mode.kind === "edit" ? mode.patient.condition : "",
-      appointmentAt: "",
+      appointmentDate: "",
+      appointmentTime: "",
       status: "upcoming",
     },
   });
@@ -53,15 +55,19 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
           setError("doctorId", { type: "required", message: "Choose a doctor" });
           return;
         }
-        if (!values.appointmentAt) {
-          setError("appointmentAt", { type: "required", message: "Choose an appointment date and time" });
+        if (!values.appointmentDate) {
+          setError("appointmentDate", { type: "required", message: "Choose an appointment date" });
+          return;
+        }
+        if (!values.appointmentTime) {
+          setError("appointmentTime", { type: "required", message: "Choose an appointment time" });
           return;
         }
         await createPatient({
           name: values.name,
           condition: values.condition,
           doctorId,
-          appointmentAt: new Date(values.appointmentAt).toISOString(),
+          appointmentAt: new Date(`${values.appointmentDate}T${values.appointmentTime}`).toISOString(),
           status: values.status as AppointmentStatus,
         }).unwrap();
       } else {
@@ -97,7 +103,8 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
       <FormInput label="Patient name" placeholder="Patient name" autoComplete="off" registration={register("name")} error={errors.name} />
       <FormInput label="Condition" placeholder="Condition" autoComplete="off" registration={register("condition")} error={errors.condition} />
       {mode.kind === "create" && <>
-        <FormInput label="Appointment date and time" type="datetime-local" required registration={register("appointmentAt")} error={errors.appointmentAt} />
+        <FormInput label="Appointment date" type="date" required registration={register("appointmentDate")} error={errors.appointmentDate} />
+        <FormInput label="Appointment time" type="time" required registration={register("appointmentTime")} error={errors.appointmentTime} />
         <div>
           <label htmlFor="status" className="mb-1.5 block text-sm font-medium text-slate-700">Appointment status</label>
           <select id="status" {...register("status")} className={inputClass}>
