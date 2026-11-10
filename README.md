@@ -85,7 +85,13 @@ The Next.js repository contains the browser UI, while the Express repository own
 
 ## Visual Evidence
 
-Genuine desktop and mobile screenshots of the Dashboard, Doctors, and Patients pages have not been captured, and no screenshot assets are present in this repository. The repository also does not record an accessible deployment URL; the Render target in `netlify.toml` is still a placeholder. No screenshot links are included until the real authenticated pages can be captured.
+![Dashboard](image.png)
+![Doctors](image-1.png)
+![Patients](image-2.png)
+
+![Dashboard](image-3.png)
+![Doctors](image-4.png)
+![Patients](image-5.png)
 
 ## Deployment
 
