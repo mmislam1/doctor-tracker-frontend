@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
       </header>
-      <main className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-7 sm:py-8 xl:px-10">
+      <main className="mx-auto w-full max-w-[1440px] px-3 py-5 sm:px-7 sm:py-8 xl:px-10">
         {signOutError && <p role="alert" className="mb-4 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700 lg:hidden">{signOutError}</p>}
         {children}
       </main>

@@ -40,7 +40,7 @@ function AppointmentDetails({ patient, appointment, doctorName, doctorSpecializa
     {onEdit && <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" aria-label={`Edit appointment for ${patient.name}`} title="Edit appointment" onClick={() => onEdit(patient, appointment)}><Pencil className="mr-1 size-3.5" aria-hidden="true" />Edit</Button>}
   </div>;
 
-  return <div className="rounded-xl border border-slate-300 bg-white p-4">
+  return <div className="rounded-xl border border-slate-300 bg-white p-3">
     <div className="flex min-w-0 items-center justify-between gap-2">
       <span title={formatDateTime(appointment.appointmentAt)} className="flex min-w-0 items-center gap-1.5 whitespace-nowrap text-xs text-slate-700"><Clock3 className="size-3.5 shrink-0 text-slate-500" aria-hidden="true" />{formatCompactAppointmentDateTime(appointment.appointmentAt)}</span>
       <span className="shrink-0"><StatusBadge status={appointment.status} /></span>
@@ -65,8 +65,8 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
   if (patients.length === 0) return <EmptyState title="No patients found" description="No patient records match these filters. Adjust your search or use Add patient to create a record." />;
 
   return <>
-    <div className="space-y-3 p-3 lg:hidden">
-      {patients.map((patient) => <article key={patient._id} className="rounded-xl border border-slate-300 bg-white p-5 shadow-sm">
+    <div className="space-y-3 p-2 sm:p-3 lg:hidden">
+      {patients.map((patient) => <article key={patient._id} className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
           <div className="min-w-0 flex-1"><h3 className="break-words font-medium text-slate-900">{patient.name}</h3><span className="mt-2 inline-flex max-w-full rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800"><span className="break-words">{patient.condition}</span></span></div>

@@ -36,7 +36,7 @@ function PatientFiltersForm({ initial, onApply, onClear }: { initial: PatientFil
     setDateError("");
     onClear();
   }
-  return <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="Patient filters">
+  return <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5" aria-label="Patient filters">
     <form onSubmit={submit}>
       <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto]">
