@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorPanel, LoadingPanel } from "@/components/shared/feedback";
 import { PageHeader } from "@/components/shared/page-header";
 import { Pagination } from "@/components/shared/pagination";
+import { FormModal } from "@/components/shared/form-modal";
 import { DoctorForm } from "@/features/doctors/components/doctor-form";
 import { DoctorTable } from "@/features/doctors/components/doctor-table";
 import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
@@ -76,10 +77,12 @@ function DoctorsContent() {
 
   return <>
     <PageHeader eyebrow="Directory" title="Doctors" description="Maintain your care team directory and open a doctor's patient list." action={
-      <Button type="button" onClick={() => setShowForm((value) => !value)}><Plus className="size-4" aria-hidden="true" />{showForm ? "Close form" : "Add doctor"}</Button>
+      <Button type="button" aria-haspopup="dialog" onClick={() => setShowForm(true)}><Plus className="size-4" aria-hidden="true" />Add doctor</Button>
     } />
 
-    {showForm && <div className="mb-6"><DoctorForm onCancel={() => setShowForm(false)} onCreated={() => { setShowForm(false); router.replace("/doctors"); }} /></div>}
+    <FormModal open={showForm} title="Add doctor" onOpenChange={setShowForm}>
+      <DoctorForm onCancel={() => setShowForm(false)} onCreated={() => { setShowForm(false); router.replace("/doctors"); }} />
+    </FormModal>
 
     <DoctorFiltersForm key={key} initial={{
       search: params.get("search") ?? "", specialization: params.get("specialization") ?? "",

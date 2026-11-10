@@ -17,7 +17,7 @@ export function PatientTable({ patients, showDoctor = true, onEdit, onDelete }: 
 
   return <>
     <div className="space-y-3 p-3 lg:hidden">
-      {patients.map((patient) => <article key={patient._id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      {patients.map((patient) => <article key={patient._id} className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
           <div className="min-w-0 flex-1">

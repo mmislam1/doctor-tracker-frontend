@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FormModal } from "@/components/shared/form-modal";
 import { ErrorPanel, LoadingPanel } from "@/components/shared/feedback";
 import { PageHeader } from "@/components/shared/page-header";
 import { Pagination } from "@/components/shared/pagination";
@@ -95,8 +96,10 @@ function DoctorPatientsContent({ doctorId, doctorName }: { doctorId: string; doc
 
   return <>
     <div className="mb-5"><Link href="/doctors" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-teal-800"><ArrowLeft className="size-3.5" aria-hidden="true" />Back to doctors</Link></div>
-    <PageHeader eyebrow="Doctor patient list" title={doctorName || `Doctor ${shortId(doctorId)}`} description="Review this doctor's patient records, add a patient, or remove an existing record." action={<Button type="button" onClick={() => setShowForm((value) => !value)}><Plus className="size-4" aria-hidden="true" />{showForm ? "Close form" : "Add patient"}</Button>} />
-    {showForm && <div className="mb-6"><PatientForm mode={{ kind: "create", doctorId }} onCancel={() => setShowForm(false)} onSaved={() => setShowForm(false)} /></div>}
+    <PageHeader eyebrow="Doctor patient list" title={doctorName || `Doctor ${shortId(doctorId)}`} description="Review this doctor's patient records, add a patient, or remove an existing record." action={<Button type="button" aria-haspopup="dialog" onClick={() => setShowForm(true)}><Plus className="size-4" aria-hidden="true" />Add patient</Button>} />
+    <FormModal open={showForm} title="Add patient" onOpenChange={setShowForm}>
+      <PatientForm mode={{ kind: "create", doctorId }} onCancel={() => setShowForm(false)} onSaved={() => setShowForm(false)} />
+    </FormModal>
     <DoctorPatientFiltersForm key={key} initial={{
       search: params.get("search") ?? "", condition: params.get("condition") ?? "",
       from: params.get("from") ?? "", to: params.get("to") ?? "",

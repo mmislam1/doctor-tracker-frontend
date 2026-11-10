@@ -34,13 +34,13 @@ export function DoctorForm({ onCancel, onCreated }: { onCancel: () => void; onCr
     }
   }
 
-  return <form onSubmit={handleSubmit(submit)} noValidate className="rounded-2xl border border-teal-100 bg-teal-50/50 p-5 sm:p-6">
-    <div className="mb-5"><h2 className="font-semibold text-slate-900">Add a doctor</h2><p className="mt-1 text-sm text-slate-500">Add the contact and practice details for this doctor.</p></div>
+  return <form onSubmit={handleSubmit(submit)} noValidate className="rounded-2xl p-5 sm:p-6">
+    <div className="mb-5 pr-10"><h2 className="font-semibold text-slate-900">Add a doctor</h2><p className="mt-1 text-sm text-slate-500">Add the contact and practice details for this doctor.</p></div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <FormInput label="Full name" placeholder="Dr. Maya Rahman" autoComplete="name" registration={register("name")} error={errors.name} />
       <div>
         <label htmlFor="specialization" className="mb-1.5 block text-sm font-medium text-slate-700">Specialization</label>
-        <select id="specialization" {...register("specialization")} aria-invalid={Boolean(errors.specialization)} aria-describedby={errors.specialization ? "specialization-error" : undefined} className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10">
+        <select id="specialization" defaultValue="" {...register("specialization")} aria-invalid={Boolean(errors.specialization)} aria-describedby={errors.specialization ? "specialization-error" : undefined} className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10">
           <option value="">Choose a specialization</option>
           {doctorSpecializations.map((specialization) => <option key={specialization} value={specialization}>{specialization}</option>)}
         </select>

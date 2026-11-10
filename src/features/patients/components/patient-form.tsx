@@ -37,8 +37,8 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
     }
   }
 
-  return <form onSubmit={handleSubmit(submit)} noValidate className="rounded-2xl border border-teal-100 bg-teal-50/50 p-5 sm:p-6">
-    <div className="mb-5"><h2 className="font-semibold text-slate-900">{isEdit ? "Edit patient" : "Add patient"}</h2><p className="mt-1 text-sm text-slate-500">{isEdit ? "Update the patient's name or condition." : "Patient records contain only a name and condition."}</p></div>
+  return <form onSubmit={handleSubmit(submit)} noValidate className="rounded-2xl p-5 sm:p-6">
+    <div className="mb-5 pr-10"><h2 className="font-semibold text-slate-900">{isEdit ? "Edit patient" : "Add patient"}</h2><p className="mt-1 text-sm text-slate-500">{isEdit ? "Update the patient's name or condition." : "Patient records contain only a name and condition."}</p></div>
     <div className="grid gap-4 sm:grid-cols-2">
       <FormInput label="Patient name" placeholder="Patient name" autoComplete="off" registration={register("name")} error={errors.name} />
       <FormInput label="Condition" placeholder="Condition" autoComplete="off" registration={register("condition")} error={errors.condition} />

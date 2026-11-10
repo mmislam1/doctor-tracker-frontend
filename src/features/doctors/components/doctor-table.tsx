@@ -12,7 +12,7 @@ export function DoctorTable({ doctors }: { doctors: Doctor[] }) {
 
   return <>
     <div className="space-y-3 p-3 lg:hidden">
-      {doctors.map((doctor) => <article key={doctor._id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      {doctors.map((doctor) => <article key={doctor._id} className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-sm font-semibold text-teal-800">{doctor.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
           <div className="min-w-0 flex-1">

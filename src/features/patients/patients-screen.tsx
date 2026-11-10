@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CalendarRange, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FormModal } from "@/components/shared/form-modal";
 import { ErrorPanel, LoadingPanel } from "@/components/shared/feedback";
 import { PageHeader } from "@/components/shared/page-header";
 import { Pagination } from "@/components/shared/pagination";
@@ -90,7 +91,9 @@ function PatientsContent() {
 
   return <>
     <PageHeader eyebrow="Patient records" title="Patients" description="Search and manage patient records across your doctor network." />
-    {editingPatient && <div className="mb-6"><PatientForm mode={{ kind: "edit", patient: editingPatient }} onCancel={() => setEditingPatient(null)} onSaved={() => setEditingPatient(null)} /></div>}
+    <FormModal open={editingPatient !== null} title="Edit patient" onOpenChange={(open) => { if (!open) setEditingPatient(null); }}>
+      {editingPatient && <PatientForm mode={{ kind: "edit", patient: editingPatient }} onCancel={() => setEditingPatient(null)} onSaved={() => setEditingPatient(null)} />}
+    </FormModal>
 
     <PatientFiltersForm key={key} initial={{
       search: params.get("search") ?? "", condition: params.get("condition") ?? "",
