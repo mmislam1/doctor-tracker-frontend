@@ -12,6 +12,7 @@ import { DoctorTable } from "@/features/doctors/components/doctor-table";
 import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { inputClass } from "@/components/shared/form-input";
+import { doctorSpecializations } from "@/features/doctors/specializations";
 
 interface DoctorFilters { search: string; specialization: string; hospital: string; from: string; to: string }
 
@@ -32,7 +33,7 @@ function DoctorFiltersForm({ initial, onApply, onClear }: { initial: DoctorFilte
       <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_0.8fr_0.8fr_auto]">
         <label className="relative"><span className="sr-only">Search doctors</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} className={`${inputClass} pl-9`} placeholder="Search name or email" /></label>
-        <label><span className="sr-only">Specialization</span><input value={draft.specialization} onChange={(event) => setDraft({ ...draft, specialization: event.target.value })} className={inputClass} placeholder="Specialization" /></label>
+        <label><span className="sr-only">Specialization</span><select value={draft.specialization} onChange={(event) => setDraft({ ...draft, specialization: event.target.value })} className={inputClass}><option value="">All specializations</option>{doctorSpecializations.map((specialization) => <option key={specialization} value={specialization}>{specialization}</option>)}</select></label>
         <label><span className="sr-only">Hospital or clinic</span><input value={draft.hospital} onChange={(event) => setDraft({ ...draft, hospital: event.target.value })} className={inputClass} placeholder="Hospital / clinic" /></label>
         <label><span className="sr-only">Added from date</span><input type="date" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} className={inputClass} aria-label="Added from date" /></label>
         <label><span className="sr-only">Added to date</span><input type="date" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} className={inputClass} aria-label="Added to date" /></label>

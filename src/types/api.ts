@@ -1,3 +1,5 @@
+import type { DoctorSpecialization } from "@/features/doctors/specializations";
+
 export interface PaginationMeta {
   page: number;
   pageSize: number;
@@ -64,7 +66,7 @@ export interface ListQuery {
 
 export interface DoctorInput {
   name: string;
-  specialization: string;
+  specialization: DoctorSpecialization;
   hospital: string;
   phone: string;
   email: string;
