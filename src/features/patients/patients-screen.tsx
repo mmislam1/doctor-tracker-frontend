@@ -2,7 +2,7 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CalendarRange, Plus, Search, SlidersHorizontal, X } from "lucide-react";
+import { CalendarRange, ChevronDown, Plus, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FormModal } from "@/components/shared/form-modal";
@@ -21,6 +21,7 @@ interface PatientFilters { search: string; condition: string; status: string; fr
 
 function PatientFiltersForm({ initial, onApply, onClear }: { initial: PatientFilters; onApply: (filters: PatientFilters) => void; onClear: () => void }) {
   const [draft, setDraft] = useState(initial);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateError, setDateError] = useState("");
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,8 +38,11 @@ function PatientFiltersForm({ initial, onApply, onClear }: { initial: PatientFil
     onClear();
   }
   return <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5" aria-label="Patient filters">
-    <form onSubmit={submit}>
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
+    <div className="mb-3 flex items-center justify-between">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
+      <Button type="button" variant="ghost" className="gap-1 px-2 text-xs lg:hidden" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((open) => !open)}>{filtersOpen ? "Hide filters" : "Show filters"}<ChevronDown className={`size-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`} aria-hidden="true" /></Button>
+    </div>
+    <form onSubmit={submit} className={`${filtersOpen ? "block" : "hidden"} lg:block`}>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto]">
         <label className="relative"><span className="sr-only">Search patients</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} className={`${inputClass} pl-9`} placeholder="Search patient or condition" /></label>
         <label><span className="sr-only">Condition filter</span><input value={draft.condition} onChange={(event) => setDraft({ ...draft, condition: event.target.value })} className={inputClass} placeholder="Filter by condition" /></label>
