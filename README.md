@@ -85,13 +85,17 @@ The Next.js repository contains the browser UI, while the Express repository own
 
 ## Visual Evidence
 
+## DESKTOP VIEW
 ![Dashboard](image.png)
 ![Doctors](image-1.png)
-![Patients](image-2.png)
+![Patients](image-6.png)
+![Patient Details](image-7.png)
 
+## MOBILE VIEW
 ![Dashboard](image-3.png)
 ![Doctors](image-4.png)
 ![Patients](image-5.png)
+![Patient details](image-8.png)
 
 ## Deployment
 
