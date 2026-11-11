@@ -17,6 +17,10 @@ export const patientsApi = api.injectEndpoints({
         ...(result?.data.map(({ _id }) => ({ type: "Patient" as const, id: _id })) ?? []),
       ],
     }),
+    getPatientAppointments: build.query<PageResponse<Appointment>, { patientId: string; page: number; pageSize: number }>({
+      query: ({ patientId, page, pageSize }) => ({ url: `/patients/${encodeURIComponent(patientId)}/appointments`, params: { page, pageSize } }),
+      providesTags: (_result, _error, { patientId }) => [{ type: "Patient", id: `APPOINTMENTS-${patientId}` }],
+    }),
     createPatient: build.mutation<SingleResponse<Patient>, PatientInput>({
       query: (body) => ({ url: "/patients", method: "POST", body }),
       invalidatesTags: ["Patient", "Dashboard"],
@@ -46,6 +50,7 @@ export const patientsApi = api.injectEndpoints({
 export const {
   useGetPatientsQuery,
   useGetDoctorPatientsQuery,
+  useGetPatientAppointmentsQuery,
   useCreatePatientMutation,
   useAddPatientAppointmentMutation,
   useUpdatePatientMutation,

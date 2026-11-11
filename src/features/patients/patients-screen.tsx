@@ -12,9 +12,10 @@ import { Pagination } from "@/components/shared/pagination";
 import { PatientForm } from "@/features/patients/components/patient-form";
 import { AppointmentForm } from "@/features/patients/components/appointment-form";
 import { PatientTable } from "@/features/patients/components/patient-table";
+import { PatientDetailsModal } from "@/features/patients/components/patient-details-modal";
 import { useDeletePatientMutation, useGetPatientsQuery } from "@/features/patients/api/patientsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
-import { inputClass } from "@/components/shared/form-input";
+import { inputClass, openNativePicker } from "@/components/shared/form-input";
 import { appointmentStatuses, type Appointment, type AppointmentStatus, type Patient } from "@/types/api";
 
 interface PatientFilters { search: string; condition: string; status: string; from: string; to: string }
@@ -45,8 +46,8 @@ function PatientFiltersForm({ initial, onApply, onClear }: { initial: PatientFil
         <label className="relative"><span className="sr-only">Search patients</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} className={`${inputClass} pl-9`} placeholder="Search patient or condition" /></label>
         <label><span className="sr-only">Condition filter</span><input value={draft.condition} onChange={(event) => setDraft({ ...draft, condition: event.target.value })} className={inputClass} placeholder="Filter by condition" /></label>
         <label><span className="sr-only">Appointment status</span><select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })} className={inputClass}><option value="">Any appointment status</option>{appointmentStatuses.map((status) => <option key={status} value={status}>{status[0].toUpperCase() + status.slice(1)}</option>)}</select></label>
-        <label className="relative"><span className="sr-only">Created from</span><CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input type="date" aria-label="Created from" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} className={`${inputClass} pl-9`} /></label>
-        <label className="relative"><span className="sr-only">Created to</span><CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input type="date" aria-label="Created to" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} className={`${inputClass} pl-9`} /></label>
+        <label className="relative"><span className="sr-only">Created from</span><CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input type="date" aria-label="Created from" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} onClick={openNativePicker} className={`${inputClass} pl-9`} /></label>
+        <label className="relative"><span className="sr-only">Created to</span><CalendarRange className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input type="date" aria-label="Created to" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} onClick={openNativePicker} className={`${inputClass} pl-9`} /></label>
         <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={clearFilters}><X className="size-4" aria-hidden="true" /></Button></div>
       </div>
       {dateError && <p role="alert" className="mt-2 text-xs text-rose-700">{dateError}</p>}
@@ -62,6 +63,7 @@ function PatientsContent() {
   const page = Math.max(1, Number(params.get("page")) || 1);
   const [showCreatePatient, setShowCreatePatient] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
   const [patientForAppointment, setPatientForAppointment] = useState<Patient | null>(null);
   const [appointmentToEdit, setAppointmentToEdit] = useState<{ patient: Patient; appointment: Appointment } | null>(null);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
@@ -114,6 +116,7 @@ function PatientsContent() {
     <FormModal open={showCreatePatient} title="Add patient" onOpenChange={setShowCreatePatient}>
       <PatientForm mode={{ kind: "create" }} onCancel={() => setShowCreatePatient(false)} onSaved={() => setShowCreatePatient(false)} />
     </FormModal>
+    <PatientDetailsModal key={viewingPatient?._id ?? "closed"} patient={viewingPatient} onOpenChange={(open) => { if (!open) setViewingPatient(null); }} onEditAppointment={(patient, appointment) => { setViewingPatient(null); setAppointmentToEdit({ patient, appointment }); }} />
     <FormModal open={editingPatient !== null} title="Edit patient" onOpenChange={(open) => { if (!open) setEditingPatient(null); }}>
       {editingPatient && <PatientForm mode={{ kind: "edit", patient: editingPatient }} onCancel={() => setEditingPatient(null)} onSaved={() => setEditingPatient(null)} />}
     </FormModal>
@@ -134,7 +137,7 @@ function PatientsContent() {
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6"><div><h2 className="font-semibold text-slate-900">All patients</h2><p className="mt-0.5 text-xs text-slate-500">{data?.pagination.total ?? 0} records</p></div>{isFetching && !isLoading && <span className="text-xs text-slate-400">Updating…</span>}</div>
       {isLoading ? <div className="p-4"><LoadingPanel label="Loading patients" /></div>
         : error ? <div className="p-4"><ErrorPanel message={getApiErrorMessage(error, "Could not load patients. Check your connection and try again.")} onRetry={() => { void refetch(); }} /></div>
-        : <><PatientTable patients={data?.data ?? []} onEdit={setEditingPatient} onAddAppointment={setPatientForAppointment} onEditAppointment={(patient, appointment) => setAppointmentToEdit({ patient, appointment })} onDelete={setPatientToDelete} />{data && data.data.length > 0 && <Pagination pagination={data.pagination} onPageChange={goToPage} />}</>}
+        : <><PatientTable patients={data?.data ?? []} onView={setViewingPatient} onEdit={setEditingPatient} onAddAppointment={setPatientForAppointment} onEditAppointment={(patient, appointment) => setAppointmentToEdit({ patient, appointment })} onDelete={setPatientToDelete} />{data && data.data.length > 0 && <Pagination pagination={data.pagination} onPageChange={goToPage} />}</>}
     </section>
     {patientToDelete && <ConfirmDialog title="Delete this patient?" description={`This will permanently remove ${patientToDelete.name} from the patient records.`} busy={deleteState.isLoading} onCancel={() => setPatientToDelete(null)} onConfirm={() => void confirmDelete()} />}
   </>;

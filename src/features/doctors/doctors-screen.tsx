@@ -12,7 +12,7 @@ import { DoctorForm } from "@/features/doctors/components/doctor-form";
 import { DoctorTable } from "@/features/doctors/components/doctor-table";
 import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
-import { inputClass } from "@/components/shared/form-input";
+import { inputClass, openNativePicker } from "@/components/shared/form-input";
 import { doctorSpecializations } from "@/features/doctors/specializations";
 
 interface DoctorFilters { search: string; specialization: string; hospital: string; from: string; to: string }
@@ -41,8 +41,8 @@ function DoctorFiltersForm({ initial, onApply, onClear }: { initial: DoctorFilte
         <label className="relative"><span className="sr-only">Search doctors</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} className={`${inputClass} pl-9`} placeholder="Search name or email" /></label>
         <label><span className="sr-only">Specialization</span><select value={draft.specialization} onChange={(event) => setDraft({ ...draft, specialization: event.target.value })} className={inputClass}><option value="">All specializations</option>{doctorSpecializations.map((specialization) => <option key={specialization} value={specialization}>{specialization}</option>)}</select></label>
         <label><span className="sr-only">Hospital or clinic</span><input value={draft.hospital} onChange={(event) => setDraft({ ...draft, hospital: event.target.value })} className={inputClass} placeholder="Hospital / clinic" /></label>
-        <label><span className="sr-only">Added from date</span><input type="date" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} className={inputClass} aria-label="Added from date" /></label>
-        <label><span className="sr-only">Added to date</span><input type="date" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} className={inputClass} aria-label="Added to date" /></label>
+        <label><span className="sr-only">Added from date</span><input type="date" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} onClick={openNativePicker} className={inputClass} aria-label="Added from date" /></label>
+        <label><span className="sr-only">Added to date</span><input type="date" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} onClick={openNativePicker} className={inputClass} aria-label="Added to date" /></label>
         <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={clearFilters}><X className="size-4" aria-hidden="true" /></Button></div>
       </div>
       {dateError && <p role="alert" className="mt-2 text-xs text-rose-700">{dateError}</p>}

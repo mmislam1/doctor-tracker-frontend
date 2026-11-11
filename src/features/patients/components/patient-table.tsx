@@ -4,7 +4,6 @@ import Link from "next/link";
 import { CalendarDays, Clock3, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/feedback";
-import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type { Appointment, Patient } from "@/types/api";
 
@@ -53,30 +52,29 @@ function AppointmentDetails({ patient, appointment, doctorName, doctorSpecializa
   </div>;
 }
 
-export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppointment, onDelete }: {
+export function PatientTable({ patients, onView, onEdit, onAddAppointment, onEditAppointment, onDelete }: {
   patients: Patient[];
+  onView: (patient: Patient) => void;
   onEdit?: (patient: Patient) => void;
   onAddAppointment?: (patient: Patient) => void;
   onEditAppointment?: (patient: Patient, appointment: Appointment) => void;
   onDelete: (patient: Patient) => void;
 }) {
-  const { data: doctorsData } = useGetDoctorsQuery({ page: 1, pageSize: 100 });
-  const doctorsById = new Map(doctorsData?.data.map((doctor) => [doctor._id, { name: doctor.name, specialization: doctor.specialization }]) ?? []);
   if (patients.length === 0) return <EmptyState title="No patients found" description="No patient records match these filters. Adjust your search or use Add patient to create a record." />;
 
   return <>
     <div className="space-y-3 p-2 sm:p-3 lg:hidden">
-      {patients.map((patient) => <article key={patient._id} className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
-        <div className="flex min-w-0 items-start gap-3">
+      {patients.map((patient) => {
+        const nextAppointment = patient.appointments[0];
+        const moreUpcomingCount = Math.max(0, (patient.upcomingAppointmentCount ?? patient.appointments.length) - 1);
+        return <article key={patient._id} className="rounded-xl border-2 border-slate-400 bg-white p-4 shadow-sm">
+        <button type="button" onClick={() => onView(patient)} className="group flex min-w-0 w-full cursor-pointer items-start gap-3 rounded-lg text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
-          <div className="min-w-0 flex-1"><h3 className="break-words font-medium text-slate-900">{patient.name}</h3><p className="mt-0.5 break-all text-xs text-slate-600">{patient.phone || "Phone not provided"}</p><span title={patient.condition} className="mt-2 block w-fit max-w-full truncate rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-700">{patient.condition}</span></div>
-        </div>
+          <div className="min-w-0 flex-1"><h3 className="break-words font-medium text-slate-900 group-hover:text-teal-800">{patient.name}</h3><p className="mt-0.5 break-all text-xs text-slate-600">{patient.phone || "Phone not provided"}</p><span title={patient.condition} className="mt-2 block w-fit max-w-full truncate rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-700">{patient.condition}</span></div>
+        </button>
         <div className="mt-5 space-y-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Appointments ({patient.appointments.length})</p>
-          {patient.appointments.length ? patient.appointments.map((appointment) => {
-            const doctor = doctorsById.get(appointment.doctorId);
-            return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} variant="card" onEdit={onEditAppointment} />;
-          }) : <p className="text-xs text-slate-500">No appointments scheduled.</p>}
+          <div className="flex items-center justify-between gap-2"><p className="text-xs font-medium uppercase tracking-wide text-slate-500">Next appointment</p>{moreUpcomingCount > 0 && <span className="shrink-0 rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-700">+{moreUpcomingCount} upcoming</span>}</div>
+          {nextAppointment ? <AppointmentDetails patient={patient} appointment={nextAppointment} doctorName={nextAppointment.doctorName || "Unknown doctor"} doctorSpecialization={nextAppointment.doctorSpecialization || "Unknown specialization"} variant="card" onEdit={onEditAppointment} /> : <p className="text-xs text-slate-500">No upcoming appointments.</p>}
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-2">
           <span className="flex items-center gap-1.5 text-xs text-slate-500"><CalendarDays className="size-3.5" aria-hidden="true" />Added {formatDate(patient.createdAt)}</span>
@@ -86,26 +84,28 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
             <Button type="button" variant="ghost" size="icon-sm" className="text-rose-700 hover:bg-rose-50 hover:text-rose-800" aria-label={`Delete ${patient.name}`} title="Delete patient" onClick={() => onDelete(patient)}><Trash2 className="size-4" aria-hidden="true" /></Button>
           </div>
         </div>
-      </article>)}
+      </article>;
+      })}
     </div>
     <div className="hidden overflow-x-auto lg:block">
       <table className="w-full min-w-[1100px] text-left text-sm">
-        <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500"><tr><th className="px-6 py-3.5">Patient</th><th className="px-4 py-3.5">Condition</th><th className="px-4 py-3.5">Appointments</th><th className="px-4 py-3.5">Added</th><th className="px-5 py-3.5 text-right">Actions</th></tr></thead>
-        <tbody className="divide-y divide-slate-200">
-          {patients.map((patient) => <tr key={patient._id} className="align-top transition-colors hover:bg-slate-50/70">
-            <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span><span className="min-w-0"><span className="block font-medium text-slate-900">{patient.name}</span><span className="mt-0.5 block break-all text-xs text-slate-600">{patient.phone || "Phone not provided"}</span></span></div></td>
+        <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500"><tr><th className="px-6 py-3.5">Patient</th><th className="px-4 py-3.5">Condition</th><th className="px-4 py-3.5">Next appointment</th><th className="px-4 py-3.5">Added</th><th className="px-5 py-3.5 text-right">Actions</th></tr></thead>
+        <tbody className="divide-y divide-slate-300">
+          {patients.map((patient) => {
+            const nextAppointment = patient.appointments[0];
+            const moreUpcomingCount = Math.max(0, (patient.upcomingAppointmentCount ?? patient.appointments.length) - 1);
+            return <tr key={patient._id} className="align-top transition-colors hover:bg-slate-50/70">
+            <td className="px-6 py-4"><button type="button" onClick={() => onView(patient)} className="flex cursor-pointer items-center gap-3 rounded-lg text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span><span className="min-w-0"><span className="block font-medium text-teal-800 hover:text-teal-950">{patient.name}</span><span className="mt-0.5 block break-all text-xs text-slate-600">{patient.phone || "Phone not provided"}</span></span></button></td>
             <td className="px-4 py-4"><span title={patient.condition} className="block max-w-[180px] truncate rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-700">{patient.condition}</span></td>
-            <td className="px-4 py-2"><div className="min-w-[440px] divide-y divide-slate-200">{patient.appointments.length ? patient.appointments.map((appointment) => {
-              const doctor = doctorsById.get(appointment.doctorId);
-              return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} variant="row" onEdit={onEditAppointment} />;
-            }) : <span className="text-xs text-slate-500">No appointments scheduled.</span>}</div></td>
+            <td className="px-4 py-2"><div className="min-w-[440px]"><div className="mb-1 flex items-center justify-between"><span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Next appointment</span>{moreUpcomingCount > 0 && <span className="rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-700">+{moreUpcomingCount} upcoming</span>}</div>{nextAppointment ? <AppointmentDetails patient={patient} appointment={nextAppointment} doctorName={nextAppointment.doctorName || "Unknown doctor"} doctorSpecialization={nextAppointment.doctorSpecialization || "Unknown specialization"} variant="row" onEdit={onEditAppointment} /> : <span className="text-xs text-slate-500">No upcoming appointments.</span>}</div></td>
             <td className="px-4 py-4"><span className="flex items-center gap-1.5 whitespace-nowrap text-xs text-slate-500"><CalendarDays className="size-3.5" aria-hidden="true" />{formatDate(patient.createdAt)}</span></td>
             <td className="px-5 py-4"><div className="flex justify-end gap-1">
               {onAddAppointment && <Button type="button" variant="ghost" size="icon-sm" aria-label={`Add appointment for ${patient.name}`} title="Add appointment" onClick={() => onAddAppointment(patient)}><Plus className="size-4" aria-hidden="true" /></Button>}
               {onEdit && <Button type="button" variant="ghost" size="icon-sm" aria-label={`Edit ${patient.name}`} title="Edit patient" onClick={() => onEdit(patient)}><Pencil className="size-4" aria-hidden="true" /></Button>}
               <Button type="button" variant="ghost" size="icon-sm" className="text-rose-700 hover:bg-rose-50 hover:text-rose-800" aria-label={`Delete ${patient.name}`} title="Delete patient" onClick={() => onDelete(patient)}><Trash2 className="size-4" aria-hidden="true" /></Button>
             </div></td>
-          </tr>)}
+          </tr>;
+          })}
         </tbody>
       </table>
     </div>

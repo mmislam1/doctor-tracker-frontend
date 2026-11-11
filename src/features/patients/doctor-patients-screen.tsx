@@ -10,10 +10,11 @@ import { FormModal } from "@/components/shared/form-modal";
 import { ErrorPanel, LoadingPanel } from "@/components/shared/feedback";
 import { PageHeader } from "@/components/shared/page-header";
 import { Pagination } from "@/components/shared/pagination";
-import { inputClass } from "@/components/shared/form-input";
+import { inputClass, openNativePicker } from "@/components/shared/form-input";
 import { PatientForm } from "@/features/patients/components/patient-form";
 import { AppointmentForm } from "@/features/patients/components/appointment-form";
 import { PatientTable } from "@/features/patients/components/patient-table";
+import { PatientDetailsModal } from "@/features/patients/components/patient-details-modal";
 import { useDeletePatientMutation, useGetDoctorPatientsQuery } from "@/features/patients/api/patientsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { shortId } from "@/lib/format";
@@ -55,8 +56,8 @@ function DoctorPatientFiltersForm({ initial, onApply, onClear }: { initial: Filt
         <label className="relative"><span className="sr-only">Search patients</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={search} onChange={(event) => setSearch(event.target.value)} className={`${inputClass} pl-9`} placeholder="Search name or condition" /></label>
         <label><span className="sr-only">Condition</span><input value={condition} onChange={(event) => setCondition(event.target.value)} className={inputClass} placeholder="Condition" /></label>
         <label><span className="sr-only">Appointment status</span><select value={status} onChange={(event) => setStatus(event.target.value)} className={inputClass}><option value="">Any appointment status</option>{appointmentStatuses.map((value) => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}</select></label>
-        <label><span className="sr-only">Created from</span><input type="date" aria-label="Created from" value={from} onChange={(event) => setFrom(event.target.value)} className={inputClass} /></label>
-        <label><span className="sr-only">Created to</span><input type="date" aria-label="Created to" value={to} onChange={(event) => setTo(event.target.value)} className={inputClass} /></label>
+        <label><span className="sr-only">Created from</span><input type="date" aria-label="Created from" value={from} onChange={(event) => setFrom(event.target.value)} onClick={openNativePicker} className={inputClass} /></label>
+        <label><span className="sr-only">Created to</span><input type="date" aria-label="Created to" value={to} onChange={(event) => setTo(event.target.value)} onClick={openNativePicker} className={inputClass} /></label>
         <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={clearFilters}><X className="size-4" aria-hidden="true" /></Button></div>
       </div>
       {dateError && <p role="alert" className="mt-2 text-xs text-rose-700">{dateError}</p>}
@@ -72,6 +73,7 @@ function DoctorPatientsContent({ doctorId, doctorName }: { doctorId: string; doc
   const page = Math.max(1, Number(params.get("page")) || 1);
   const [showForm, setShowForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
   const [patientForAppointment, setPatientForAppointment] = useState<Patient | null>(null);
   const [appointmentToEdit, setAppointmentToEdit] = useState<{ patient: Patient; appointment: Appointment } | null>(null);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
@@ -128,6 +130,7 @@ function DoctorPatientsContent({ doctorId, doctorName }: { doctorId: string; doc
     <FormModal open={showForm} title="Add patient" onOpenChange={setShowForm}>
       <PatientForm mode={{ kind: "create", doctorId, doctorName }} onCancel={() => setShowForm(false)} onSaved={() => setShowForm(false)} />
     </FormModal>
+    <PatientDetailsModal key={viewingPatient?._id ?? "closed"} patient={viewingPatient} onOpenChange={(open) => { if (!open) setViewingPatient(null); }} onEditAppointment={(patient, appointment) => { setViewingPatient(null); setAppointmentToEdit({ patient, appointment }); }} />
     <FormModal open={patientForAppointment !== null} title="Add appointment" onOpenChange={(open) => { if (!open) setPatientForAppointment(null); }}>
       {patientForAppointment && <AppointmentForm mode={{ kind: "create", patient: patientForAppointment, doctorId, doctorName }} onCancel={() => setPatientForAppointment(null)} onSaved={() => setPatientForAppointment(null)} />}
     </FormModal>
@@ -146,7 +149,7 @@ function DoctorPatientsContent({ doctorId, doctorName }: { doctorId: string; doc
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6"><div><h2 className="font-semibold text-slate-900">Patients assigned to {doctorName || `Doctor ${shortId(doctorId)}`}</h2><p className="mt-0.5 text-xs text-slate-500">{data?.pagination.total ?? 0} records</p></div>{isFetching && !isLoading && <span className="text-xs text-slate-400">Updating…</span>}</div>
       {isLoading ? <div className="p-4"><LoadingPanel label="Loading doctor's patients" /></div>
         : error ? <div className="p-4"><ErrorPanel message={getApiErrorMessage(error, "Could not load this doctor's patient list.")} onRetry={() => { void refetch(); }} /></div>
-        : <><PatientTable patients={data?.data ?? []} onAddAppointment={setPatientForAppointment} onEditAppointment={(patient, appointment) => setAppointmentToEdit({ patient, appointment })} onDelete={setPatientToDelete} />{data && data.data.length > 0 && <Pagination pagination={data.pagination} onPageChange={goToPage} />}</>}
+        : <><PatientTable patients={data?.data ?? []} onView={setViewingPatient} onAddAppointment={setPatientForAppointment} onEditAppointment={(patient, appointment) => setAppointmentToEdit({ patient, appointment })} onDelete={setPatientToDelete} />{data && data.data.length > 0 && <Pagination pagination={data.pagination} onPageChange={goToPage} />}</>}
     </section>
     {patientToDelete && <ConfirmDialog title="Remove this patient?" description={`This will permanently remove ${patientToDelete.name} from this doctor's patient list.`} busy={deleteState.isLoading} onCancel={() => setPatientToDelete(null)} onConfirm={() => void confirmDelete()} />}
   </>;

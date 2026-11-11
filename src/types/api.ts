@@ -48,6 +48,7 @@ export interface Patient {
   condition: string;
   phone?: string;
   appointments: Appointment[];
+  upcomingAppointmentCount?: number;
   createdAt: string;
   updatedAt: string;
 }
