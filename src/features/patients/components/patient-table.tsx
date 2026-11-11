@@ -69,7 +69,7 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
       {patients.map((patient) => <article key={patient._id} className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span>
-          <div className="min-w-0 flex-1"><h3 className="break-words font-medium text-slate-900">{patient.name}</h3><span className="mt-2 inline-flex max-w-full rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800"><span className="break-words">{patient.condition}</span></span></div>
+          <div className="min-w-0 flex-1"><h3 className="break-words font-medium text-slate-900">{patient.name}</h3><span title={patient.condition} className="mt-2 block w-fit max-w-full truncate rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-700">{patient.condition}</span></div>
         </div>
         <div className="mt-5 space-y-3">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Appointments ({patient.appointments.length})</p>
@@ -94,7 +94,7 @@ export function PatientTable({ patients, onEdit, onAddAppointment, onEditAppoint
         <tbody className="divide-y divide-slate-200">
           {patients.map((patient) => <tr key={patient._id} className="align-top transition-colors hover:bg-slate-50/70">
             <td className="px-6 py-4"><div className="flex items-center gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-semibold text-sky-800">{patient.name.split(/\s+/).slice(0, 2).map((word) => word[0]).join("").toUpperCase()}</span><span className="font-medium text-slate-900">{patient.name}</span></div></td>
-            <td className="px-4 py-4"><span className="inline-flex rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800">{patient.condition}</span></td>
+            <td className="px-4 py-4"><span title={patient.condition} className="block max-w-[180px] truncate rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-700">{patient.condition}</span></td>
             <td className="px-4 py-2"><div className="min-w-[440px] divide-y divide-slate-200">{patient.appointments.length ? patient.appointments.map((appointment) => {
               const doctor = doctorsById.get(appointment.doctorId);
               return <AppointmentDetails key={appointment._id} patient={patient} appointment={appointment} doctorName={appointment.doctorName || doctor?.name || "Unknown doctor"} doctorSpecialization={appointment.doctorSpecialization || doctor?.specialization || "Unknown specialization"} variant="row" onEdit={onEditAppointment} />;
