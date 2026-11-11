@@ -29,16 +29,21 @@ function DoctorFiltersForm({ initial, onApply, onClear }: { initial: DoctorFilte
     setDateError("");
     onApply(draft);
   }
+  function clearFilters() {
+    setDraft({ search: "", specialization: "", hospital: "", from: "", to: "" });
+    setDateError("");
+    onClear();
+  }
   return <section className="mb-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-label="Doctor filters">
     <form onSubmit={submit}>
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
+      <div className="mb-3 flex items-center gap-2 pr-10 text-xs font-semibold uppercase tracking-wider text-slate-500"><SlidersHorizontal className="size-3.5" aria-hidden="true" />Search and filters</div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_0.8fr_0.8fr_auto]">
         <label className="relative"><span className="sr-only">Search doctors</span><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" /><input value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} className={`${inputClass} pl-9`} placeholder="Search name or email" /></label>
         <label><span className="sr-only">Specialization</span><select value={draft.specialization} onChange={(event) => setDraft({ ...draft, specialization: event.target.value })} className={inputClass}><option value="">All specializations</option>{doctorSpecializations.map((specialization) => <option key={specialization} value={specialization}>{specialization}</option>)}</select></label>
         <label><span className="sr-only">Hospital or clinic</span><input value={draft.hospital} onChange={(event) => setDraft({ ...draft, hospital: event.target.value })} className={inputClass} placeholder="Hospital / clinic" /></label>
         <label><span className="sr-only">Added from date</span><input type="date" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} className={inputClass} aria-label="Added from date" /></label>
         <label><span className="sr-only">Added to date</span><input type="date" value={draft.to} onChange={(event) => setDraft({ ...draft, to: event.target.value })} className={inputClass} aria-label="Added to date" /></label>
-        <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={onClear}><X className="size-4" aria-hidden="true" /></Button></div>
+        <div className="flex gap-2"><Button type="submit" className="flex-1 sm:flex-none">Apply</Button><Button type="button" variant="outline" title="Clear filters" aria-label="Clear filters" onClick={clearFilters}><X className="size-4" aria-hidden="true" /></Button></div>
       </div>
       {dateError && <p role="alert" className="mt-2 text-xs text-rose-700">{dateError}</p>}
     </form>
@@ -52,6 +57,7 @@ function DoctorsContent() {
   const key = params.toString();
   const page = Math.max(1, Number(params.get("page")) || 1);
   const [showForm, setShowForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data, isLoading, isFetching, error, refetch } = useGetDoctorsQuery({
     page,
@@ -77,17 +83,24 @@ function DoctorsContent() {
 
   return <>
     <PageHeader eyebrow="Directory" title="Doctors" description="Maintain your care team directory and open a doctor's patient list." action={
-      <Button type="button" aria-haspopup="dialog" onClick={() => setShowForm(true)}><Plus className="size-4" aria-hidden="true" />Add doctor</Button>
+      <div className="flex gap-2"><Button type="button" variant="outline" className="lg:hidden" aria-haspopup="dialog" onClick={() => setShowFilters(true)}><SlidersHorizontal className="size-4" aria-hidden="true" />Filters</Button><Button type="button" aria-haspopup="dialog" onClick={() => setShowForm(true)}><Plus className="size-4" aria-hidden="true" />Add doctor</Button></div>
     } />
+
+    <FormModal open={showFilters} title="Doctor filters" onOpenChange={setShowFilters}>
+      <DoctorFiltersForm key={`mobile-${key}`} initial={{
+        search: params.get("search") ?? "", specialization: params.get("specialization") ?? "",
+        hospital: params.get("hospital") ?? "", from: params.get("from") ?? "", to: params.get("to") ?? "",
+      }} onApply={(filters) => { applyFilters(filters); setShowFilters(false); }} onClear={() => { router.replace(pathname); setShowFilters(false); }} />
+    </FormModal>
 
     <FormModal open={showForm} title="Add doctor" onOpenChange={setShowForm}>
       <DoctorForm onCancel={() => setShowForm(false)} onCreated={() => { setShowForm(false); router.replace("/doctors"); }} />
     </FormModal>
 
-    <DoctorFiltersForm key={key} initial={{
+    <div className="hidden lg:block"><DoctorFiltersForm key={`desktop-${key}`} initial={{
       search: params.get("search") ?? "", specialization: params.get("specialization") ?? "",
       hospital: params.get("hospital") ?? "", from: params.get("from") ?? "", to: params.get("to") ?? "",
-    }} onApply={applyFilters} onClear={() => router.replace(pathname)} />
+    }} onApply={applyFilters} onClear={() => router.replace(pathname)} /></div>
 
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
