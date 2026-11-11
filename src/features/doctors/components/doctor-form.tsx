@@ -8,6 +8,7 @@ import { FormInput } from "@/components/shared/form-input";
 import { useCreateDoctorMutation } from "@/features/doctors/api/doctorsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { doctorSpecializations } from "@/features/doctors/specializations";
+import { showToast } from "@/lib/toast";
 
 const doctorSchema = z.object({
   name: z.string().trim().min(2, "Enter the doctor's name").max(120),
@@ -28,8 +29,10 @@ export function DoctorForm({ onCancel, onCreated }: { onCancel: () => void; onCr
   async function submit(values: DoctorValues) {
     try {
       await createDoctor(values).unwrap();
+      showToast("success", "Doctor added", "The doctor was added successfully.");
       onCreated();
-    } catch {
+    } catch (error) {
+      showToast("error", "Doctor not added", getApiErrorMessage(error, "Could not create this doctor. Please try again."));
       // RTK Query exposes the API message below.
     }
   }

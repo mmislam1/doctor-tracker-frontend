@@ -8,6 +8,7 @@ import { FormInput, inputClass } from "@/components/shared/form-input";
 import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
 import { useAddPatientAppointmentMutation, useUpdatePatientAppointmentMutation } from "@/features/patients/api/patientsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { showToast } from "@/lib/toast";
 import type { Appointment, AppointmentStatus, Patient } from "@/types/api";
 
 const appointmentSchema = z.object({
@@ -65,8 +66,10 @@ export function AppointmentForm({ mode, onCancel, onSaved }: { mode: Mode; onCan
       } else {
         await updateAppointment({ patientId: mode.patient._id, appointmentId: mode.appointment._id, body: { appointmentAt: new Date(`${values.appointmentDate}T${values.appointmentTime}`).toISOString(), status: values.status as AppointmentStatus } }).unwrap();
       }
+      showToast("success", isEdit ? "Appointment updated" : "Appointment created", isEdit ? "The appointment was updated successfully." : "The appointment was created successfully.");
       onSaved();
-    } catch {
+    } catch (error) {
+      showToast("error", isEdit ? "Appointment not updated" : "Appointment not created", getApiErrorMessage(error, `Could not ${isEdit ? "update" : "add"} this appointment. Please try again.`));
       // RTK Query exposes the API message below.
     }
   }

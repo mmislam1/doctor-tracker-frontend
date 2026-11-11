@@ -9,11 +9,13 @@ import { useGetDoctorsQuery } from "@/features/doctors/api/doctorsApi";
 import { appointmentStatuses, type AppointmentStatus, type Patient } from "@/types/api";
 import { useCreatePatientMutation, useUpdatePatientMutation } from "@/features/patients/api/patientsApi";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { showToast } from "@/lib/toast";
 
 const patientSchema = z.object({
   doctorId: z.string().optional(),
   name: z.string().trim().min(2, "Enter the patient's name").max(120),
   condition: z.string().trim().min(2, "Enter a condition").max(120),
+  phone: z.string().trim().max(40, "Phone number is too long").refine((value) => !value || value.length >= 5, "Enter a valid phone number").optional(),
   appointmentDate: z.string().optional().refine((value) => !value || !Number.isNaN(new Date(`${value}T00:00:00`).valueOf()), "Enter a valid appointment date"),
   appointmentTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Enter a valid appointment time").optional(),
   status: z.enum(appointmentStatuses).optional(),
@@ -41,6 +43,7 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
       doctorId: mode.kind === "create" ? mode.doctorId ?? "" : "",
       name: mode.kind === "edit" ? mode.patient.name : "",
       condition: mode.kind === "edit" ? mode.patient.condition : "",
+      phone: mode.kind === "edit" ? mode.patient.phone ?? "" : "",
       appointmentDate: "",
       appointmentTime: "",
       status: "upcoming",
@@ -66,15 +69,20 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
         await createPatient({
           name: values.name,
           condition: values.condition,
+          phone: values.phone?.trim() || undefined,
           doctorId,
           appointmentAt: new Date(`${values.appointmentDate}T${values.appointmentTime}`).toISOString(),
           status: values.status as AppointmentStatus,
         }).unwrap();
+        showToast("success", "Patient added", "The patient profile was added successfully.");
+        showToast("success", "Appointment created", "The patient's first appointment was scheduled.");
       } else {
-        await updatePatient({ patientId: mode.patient._id, body: { name: values.name, condition: values.condition } }).unwrap();
+        await updatePatient({ patientId: mode.patient._id, body: { name: values.name, condition: values.condition, phone: values.phone?.trim() ?? "" } }).unwrap();
+        showToast("success", "Patient updated", "The patient profile was updated successfully.");
       }
       onSaved();
-    } catch {
+    } catch (error) {
+      showToast("error", isEdit ? "Patient not updated" : "Patient not added", getApiErrorMessage(error, `Could not ${isEdit ? "update" : "add"} this patient. Please try again.`));
       // RTK Query exposes the API message below.
     }
   }
@@ -101,6 +109,7 @@ export function PatientForm({ mode, onCancel, onSaved }: { mode: FormMode; onCan
           {!doctorsLoading && !doctorsError && doctors.length === 0 && <p className="mt-1 text-xs text-slate-600">Add a doctor before creating a patient record.</p>}
         </div>)}
       <FormInput label="Patient name" placeholder="Patient name" autoComplete="off" registration={register("name")} error={errors.name} />
+      <FormInput label="Phone number (optional)" type="tel" placeholder="+880 1XXX-XXXXXX" autoComplete="tel" registration={register("phone")} error={errors.phone} />
       <FormInput label="Condition" placeholder="Condition" autoComplete="off" registration={register("condition")} error={errors.condition} />
       {mode.kind === "create" && <>
         <FormInput label="Appointment date" type="date" required registration={register("appointmentDate")} error={errors.appointmentDate} />

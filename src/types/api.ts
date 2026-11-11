@@ -46,6 +46,7 @@ export interface Patient {
   _id: string;
   name: string;
   condition: string;
+  phone?: string;
   appointments: Appointment[];
   createdAt: string;
   updatedAt: string;
@@ -91,6 +92,7 @@ export interface DoctorInput {
 export interface PatientInput {
   name: string;
   condition: string;
+  phone?: string;
   doctorId: string;
   appointmentAt: string;
   status: AppointmentStatus;
@@ -99,6 +101,7 @@ export interface PatientInput {
 export interface PatientUpdateInput {
   name?: string;
   condition?: string;
+  phone?: string;
 }
 
 export interface AppointmentInput {
