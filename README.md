@@ -4,7 +4,7 @@
 
 Doctor Tracker is an administrator workspace for keeping a doctor directory and its patient records organized, with searchable lists and a dashboard for record totals and recent activity.
 
-## How to use 
+## Credentials for Admin use
 
 ### Email: mmislam272@gmail.com
 ### Password: 11111111
