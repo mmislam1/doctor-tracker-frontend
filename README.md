@@ -4,6 +4,11 @@
 
 Doctor Tracker is an administrator workspace for keeping a doctor directory and its patient records organized, with searchable lists and a dashboard for record totals and recent activity.
 
+## How to use 
+
+# Email: mmislam272@gmail.com
+# Password: 11111111
+
 ## Setup Guide
 
 The frontend and backend are separate repositories in the same parent folder. Use Node.js 26 or newer and npm for both.
