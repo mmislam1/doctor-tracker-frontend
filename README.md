@@ -6,8 +6,8 @@ Doctor Tracker is an administrator workspace for keeping a doctor directory and 
 
 ## How to use 
 
-# Email: mmislam272@gmail.com
-# Password: 11111111
+### Email: mmislam272@gmail.com
+### Password: 11111111
 
 ## Setup Guide
 
